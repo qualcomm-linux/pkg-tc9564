@@ -1,4 +1,4 @@
-# Contributing to <REPLACE-ME>
+# Contributing to pkg-tc9564
 
 Hi there!
 We’re thrilled that you’d like to contribute to this project.
@@ -6,30 +6,33 @@ Your help is essential for keeping this project great and for making it better.
 
 ## Branching Strategy
 
-Development happens directly on branch main. Open a PR targeting main
+Packaging development happens on `qcom/ubuntu/resolute` (Ubuntu 26.04,
+Resolute Raccoon). Open a PR targeting that branch. Changes to the
+repository documentation target `qli-ci`.
 
 ## Submitting a pull request
 
 1. Please read our [code of conduct](CODE-OF-CONDUCT.md) and [license](LICENSE.txt).
-1. [Fork](https://github.com/qualcomm-linux/pkg-template/fork) and clone the repository.
+1. [Fork](https://github.com/qualcomm-linux/pkg-tc9564/fork) and clone the repository.
 
     ```bash
-    git clone https://github.com/qualcomm-linux/pkg-template.git
+    git clone https://github.com/qualcomm-linux/pkg-tc9564.git
     ```
 
-1. Create a new branch based on `main`:
+1. Create a new branch based on `qcom/ubuntu/resolute`:
 
     ```bash
-    git checkout -b <my-branch-name> main
+    git checkout -b <my-branch-name> qcom/ubuntu/resolute
     ```
 
 1. Create an upstream `remote` to make it easier to keep your branches up-to-date:
 
     ```bash
-    git remote add upstream https://github.com/qualcomm/<REPLACE-ME>.git
+    git remote add upstream https://github.com/qualcomm-linux/pkg-tc9564.git
     ```
 
-1. Make your changes, add tests, and make sure the tests still pass.
+1. Make your changes, then build the package and run Lintian as described in
+   [README.md](README.md).
 1. Commit your changes using the [DCO](https://developercertificate.org/). You can attest to the DCO by commiting with the **-s** or **--signoff** options or manually adding the "Signed-off-by":
 
     ```bash
@@ -39,7 +42,7 @@ Development happens directly on branch main. Open a PR targeting main
 1. After committing your changes on the topic branch, sync it with the upstream branch:
 
     ```bash
-    git pull --rebase upstream main
+    git pull --rebase upstream qcom/ubuntu/resolute
     ```
 
 1. Push to your fork.
@@ -50,7 +53,7 @@ Development happens directly on branch main. Open a PR targeting main
 
     The `-u` is shorthand for `--set-upstream`. This will set up the tracking reference so subsequent runs of `git push` or `git pull` can omit the remote and branch.
 
-1. [Submit a pull request](https://github.com/qualcomm/<REPLACE-ME>/pulls) from your branch to `main`.
+1. [Submit a pull request](https://github.com/qualcomm-linux/pkg-tc9564/pulls) from your branch to `qcom/ubuntu/resolute`.
 1. Pat yourself on the back and wait for your pull request to be reviewed.
 
 ## Security Analysis of Pull Requests
