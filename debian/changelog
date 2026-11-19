@@ -1,0 +1,9 @@
+tc9564 (6.0.3+git2cbd7b9-0qli1~) UNRELEASED; urgency=medium
+
+  * Package the Qualcomm TC9564 host driver with DKMS, ported from the
+    board-verified qps615 packaging.
+  * Match Yocto's physical-function and Qualcomm platform configuration.
+  * Ship the TC956X PCIe bridge firmware V6.0.0 from the firmware orig
+    component in tc9564-firmware.
+
+ -- Mohd Ayaan Anwar <mohd.anwar@oss.qualcomm.com>  Thu, 19 Nov 2026 15:54:54 +0530

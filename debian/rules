@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/pkg-info.mk
+
+%:
+	dh $@
+
+# Binary packaging copies sources; DKMS compiles against the target kernel.
+override_dh_auto_clean override_dh_auto_configure override_dh_auto_build override_dh_auto_test override_dh_auto_install:
+
+override_dh_install:
+	dh_install
+	install -d debian/tc9564-dkms/usr/src/tc9564-$(DEB_VERSION_UPSTREAM)
+	cp -a drivers debian/tc9564-dkms/usr/src/tc9564-$(DEB_VERSION_UPSTREAM)/
+
+override_dh_dkms:
+	dh_dkms -V $(DEB_VERSION_UPSTREAM)

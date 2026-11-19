@@ -1,0 +1,142 @@
+TC9564 (QPS615) on Ubuntu 26.04 Resolute / RB3 Gen2
+===================================================
+
+Prerequisites
+-------------
+
+Use an ARM64 Resolute Qualcomm kernel with CONFIG_ARCH_QCOM and matching
+headers. The boot image's DTB/FIT must contain the RB3 Gen2 staging
+overlay. A qcs6490-rb3gen2-staging.dtso file in the kernel source is not
+proof that it was compiled and included in the installed boot image.
+Use the base-board configuration initially; the industrial mezzanine
+has a separate overlay and is outside the initial test matrix.
+
+Install matching headers from the same archive as the installed kernel,
+along with efivar, ethtool, pciutils and iperf3 for setup/testing. For
+archives with the standard Ubuntu header naming:
+
+    sudo apt install "linux-headers-$(uname -r)" efivar ethtool pciutils iperf3
+    sudo apt install ./tc9564-firmware_*_all.deb ./tc9564-dkms_*_arm64.deb
+    dkms status
+    modinfo -k "$(uname -r)" tc956x_pcie_eth
+
+If that header package name is unavailable, obtain the image's exact
+common and flavour-specific header packages from its kernel supplier.
+Do not substitute generic or Yocto headers. Ensure the build link under
+/lib/modules/<release>/build resolves to the prepared header tree.
+
+If the earlier qps615-dkms and qps615-firmware test packages are
+installed, purge them first. They ship the same firmware file and build
+the same tc956x_pcie_eth module:
+
+    sudo apt purge qps615-dkms qps615-firmware
+
+The DKMS package name is tc9564, version 6.0.3+git2cbd7b9. The module name
+is tc956x_pcie_eth. Its firmware is:
+
+    /usr/lib/firmware/TC956X_Firmware_PCIeBridge.bin
+
+On merged-/usr Ubuntu, this is also reachable through /lib/firmware.
+The filename is case sensitive. Firmware is loaded into the bridge by
+the driver; installing the package does not flash the board.
+
+Activate the staging overlay (explicit user operation)
+------------------------------------------------------
+
+Run this on the RB3 Gen2 target, with console access available across
+reboot. Staging is a board-wide overlay selection. Inspect its current
+value first; if it already contains other selections, preserve them
+using the board firmware's documented selection syntax rather than
+blindly replacing them with staging.
+
+    overlay_id=882f8c2b-9646-435f-8de5-f208ff80c1bd-VendorDtbOverlays
+    sudo efivar -l
+    sudo efivar -n "$overlay_id" -p
+
+If present, export the original variable (including its attributes) to
+a new backup file before changing it:
+
+    overlay_backup="$HOME/VendorDtbOverlays-$(date +%Y%m%d-%H%M%S).efivar"
+    sudo efivar -n "$overlay_id" --export="$overlay_backup"
+
+Record whether the variable was originally absent. A missing-variable
+error is distinct from an unavailable EFI runtime or a permissions
+error. Verify /sys/firmware/efi/efivars is mounted if efivar cannot list
+variables. Keep the backup path for rollback; do not overwrite it.
+
+To select staging, use a file with exactly seven bytes and no newline:
+
+    overlay_payload=$(mktemp)
+    printf %s staging > "$overlay_payload"
+    sudo efivar -n "$overlay_id" -w -f "$overlay_payload"
+    rm -- "$overlay_payload"
+    sudo efivar -n "$overlay_id" -p
+    sync
+    sudo reboot
+
+Only reboot after the write and read-back succeed. Package installation
+does not execute these commands or make EFI changes.
+
+After reboot
+------------
+
+    sudo modprobe tc956x_pcie_eth
+    lspci -nnk
+    ip -br link
+    sudo journalctl -k -b | grep -Ei 'tc956|qps615|firmware|phy'
+
+Expect the QPS615 Ethernet functions to bind to tc956x_pcie_eth and both
+base-board Ethernet interfaces to appear. Interface names are assigned
+by the system; do not assume eth0/eth1. Use ethtool -i <interface> to
+associate each interface with its driver and PCI bus address, and
+ethtool <interface> to inspect negotiated speed and link.
+
+Confirm the live device tree includes the staging PHY supplies, reset
+GPIOs and QPS615 GPIO controller. Successful EFI read-back alone does
+not prove the firmware applied the overlay.
+
+Troubleshooting
+---------------
+
+* Missing module: inspect dkms status and
+  /var/lib/dkms/tc9564/6.0.3+git2cbd7b9/build/make.log. Verify matching
+  headers and CONFIG_ARCH_QCOM. Retry with:
+      sudo dkms autoinstall -k "$(uname -r)"
+* Missing firmware: verify the exact file above and inspect kernel logs.
+  This upstream revision does not declare MODULE_FIRMWARE, so modinfo -F
+  firmware being empty is expected. Early network boot/initramfs loading
+  is not validated by this package. If an image loads the module before
+  the root filesystem is available, its initramfs must explicitly include
+  the firmware; check with lsinitramfs. Normal tests load after root mount.
+* Ports absent or PHY timeout: verify boot-image overlay inclusion,
+  live-tree properties, board variant, PHY drivers and reset/supply logs.
+* Secure Boot: use the distribution's DKMS module signing and MOK
+  enrollment workflow if the kernel enforces signatures. A successfully
+  built but untrusted module may fail to load with a key rejection.
+* MAC addresses: the pinned driver falls back to random MAC addresses
+  when platform addresses are absent. Record actual addresses during
+  testing; persistence of a generated address is not guaranteed.
+
+Rollback
+--------
+
+If the variable existed before activation, restore the saved export:
+
+    sudo efivar --import="$overlay_backup"
+    sudo efivar -n "$overlay_id" -p
+
+If it was originally absent, delete only this variable instead:
+
+    sudo efivar -n "$overlay_id" --delete
+
+Verify the restored state, then sync and reboot explicitly. Restore only
+when this will not discard overlay changes made since the backup.
+
+To remove the software:
+
+    sudo apt purge tc9564-dkms tc9564-firmware
+
+Removal unregisters the DKMS module but does not unload an in-use network
+driver or change the EFI variable. An already loaded module remains
+active until explicitly unloaded or the system reboots. Do removal and
+reboot tests over serial or another management interface.

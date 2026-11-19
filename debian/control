@@ -1,0 +1,29 @@
+Source: tc9564
+Section: non-free/kernel
+Maintainer: Maintainers.pkg-tc9564 <Maintainers.pkg-tc9564@qualcomm.com>
+Uploaders: Mohd Ayaan Anwar <mohd.anwar@oss.qualcomm.com>
+Build-Depends: debhelper-compat (= 13), dh-sequence-dkms
+Standards-Version: 4.7.2
+Homepage: https://github.com/qualcomm-linux/TC9564_Host_Driver
+Vcs-Git: https://github.com/qualcomm-linux/pkg-tc9564.git -b qcom/ubuntu/resolute
+Vcs-Browser: https://github.com/qualcomm-linux/pkg-tc9564/tree/qcom/ubuntu/resolute
+
+Package: tc9564-dkms
+Architecture: arm64
+Depends: ${misc:Depends}, tc9564-firmware (= ${source:Version})
+Description: Qualcomm TC9564 PCIe Ethernet driver (DKMS)
+ Sources for the tc956x_pcie_eth kernel module, configured for the
+ TC9564 (QPS615) physical functions and Qualcomm platform support.
+ DKMS builds the module for installed kernels with matching headers.
+ .
+ RB3 Gen2 requires a boot image containing its staging device-tree
+ overlay and explicit activation through VendorDtbOverlays. See the
+ installed README.Debian for setup and verification instructions.
+
+Package: tc9564-firmware
+Architecture: all
+Depends: ${misc:Depends}
+Description: firmware for the TC9564 PCIe Ethernet bridge
+ Toshiba TC956X PCIe bridge firmware used by the Qualcomm TC9564
+ (QPS615) Ethernet driver. Installs TC956X_Firmware_PCIeBridge.bin into
+ the system firmware directory for loading by the host driver.

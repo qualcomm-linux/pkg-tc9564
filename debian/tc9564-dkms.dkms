@@ -1,0 +1,14 @@
+PACKAGE_NAME="tc9564"
+PACKAGE_VERSION="#MODULE_VERSION#"
+AUTOINSTALL="yes"
+
+BUILT_MODULE_NAME[0]="tc956x_pcie_eth"
+BUILT_MODULE_LOCATION[0]="drivers/net/ethernet/toshiba/tc956x"
+DEST_MODULE_LOCATION[0]="/updates/dkms"
+
+# Bypass the upstream wrapper's M=$(PWD); always use the DKMS build copy.
+MAKE[0]="make -C ${kernel_source_dir} M=${dkms_tree}/${PACKAGE_NAME}/${PACKAGE_VERSION}/build/drivers/net/ethernet/toshiba/tc956x pf=1 KCFLAGS='-DTC956X -DCONFIG_TC956X_PLATFORM_SUPPORT -DTC956X_SRIOV_PF' modules"
+CLEAN="make -C ${kernel_source_dir} M=${dkms_tree}/${PACKAGE_NAME}/${PACKAGE_VERSION}/build/drivers/net/ethernet/toshiba/tc956x clean"
+
+BUILD_EXCLUSIVE_ARCH="^(aarch64|arm64)$"
+BUILD_EXCLUSIVE_CONFIG="CONFIG_ARCH_QCOM"
