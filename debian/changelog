@@ -1,4 +1,4 @@
-tc9564 (6.0.3+git2cbd7b9-0qli1~) UNRELEASED; urgency=medium
+tc9564 (6.0.3+git2cbd7b9-0qli1) UNRELEASED; urgency=medium
 
   * Package the Qualcomm TC9564 host driver with DKMS, ported from the
     board-verified qps615 packaging.
